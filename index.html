@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+	<title>Bad Pac | DarrylGuenther.com</title>
+		<meta charset="UTF-8">
+		<style type="text/css">
+			* {
+				padding: 0;
+				margin: 0;
+			}
+			body {
+				background: url('pacman_bezel_cabaret(resize).png') center -29px no-repeat #000;
+				overflow: hidden;
+				color: #fff;
+				height: 100%;
+				padding-top: 55px;
+			}
+			#bottomContain {
+				width: 595px;
+				margin: 0 auto;
+			}
+			#container {
+				width: 595px;
+				height: 650px;
+				border: 6px double #008;
+				border-radius: 2em;
+				margin: 0 auto;
+				position: relative;
+				cursor:none;
+			}
+			#pac {
+				width: 64px;
+				height: 64px;
+				background: url("Pac.png");
+				position: absolute;
+				top: 50%;
+				left: 45%;
+			}
+			#monster {
+				width: 64px;
+				height: 64px;
+				background: url("Monsters.png");
+				position: absolute;
+				top: 10%;
+				left: 45%;				
+			}
+			#dot {
+				position: absolute;
+				width: 10px;
+				height: 10px;
+				background: yellow;
+				left: 32px;
+				top: 50%;
+				border-radius: 16px;
+				box-shadow: 0px 0px .5em #ececec;
+			}
+			#energizer {
+				position: absolute;
+				width: 30px;
+				height: 30px;
+				background: yellow;
+				left: 45%;
+				top: -400px;
+				border-radius: 16px;
+				box-shadow: 0px 0px .5em #ececec;
+				visibility:visible;
+			}
+			#p1Score {
+				margin-left: 1em;
+				float: left;
+				font-size: 2em;
+				color: yellow;
+				width: 33%;
+				line-height: 1em;
+			}
+			#highScore {
+				margin-left: 33%;
+				font-size: 2em;
+				color: yellow;
+				width: 33%;	
+				text-align: center;
+				line-height: 1em;
+			}
+			#p1Lives {
+				width: 40%;
+			}
+			#p1Lives img {
+				width: 27px;
+				height: 32px;
+				
+			}
+			#pointsBox {
+				width: 100px;
+				height: 100px;
+				position: absolute;
+				top: -400px;
+				left: 50%;
+				font-size: 2em;
+			}
+			#control {
+				position:fixed;
+				bottom: 5%;
+				left: 33%;
+				width: 33%;
+				height: 33%;
+				opacity: .2;
+			}
+			#fruit {
+				width: 50px;
+				height: 50px;
+				position: absolute;
+				top: -400px;
+				left: 70%;
+				background: url('Fruit.png');
+			}
+			#gameOver, #paused {
+				display: block;
+				width: 100%;
+				position: absolute;
+				text-align: center;
+				top: 32%;
+			}
+			#paused {
+				display: none;
+			}
+			#gameOver h1 {
+				color: #f00;
+				font-size: 3em;
+				display:block;
+				width: 100%;
+				text-align: center;
+				text-shadow: 2px 2px 1px #fff;
+			}
+			#gameOver h2 {
+				color: #fff;
+				display: block;
+				text-align: center;
+				width: 100%;
+			}
+			.button {
+				width: 23%;
+				height: 33%;
+				background: #f00;
+				display: block;
+				margin: 10px;
+			}
+			#up {
+				margin: 0 auto;
+				border-radius: 1em 1em 0 0;
+			}
+			#left {
+				float: left;
+				border-radius:  1em 0 0 1em;
+			}
+			#right {
+				float: right;
+				border-radius: 0 1em 1em 0;
+			}
+			#down {
+				clear: both;
+				margin: 0 auto;
+				border-radius: 0 0 1em 1em;
+			}
+			#scoreContainer {
+				padding-top: 6px;
+				width: 600px;
+				margin: 0 auto;
+				font-size: .8em;
+			}
+			#updateScore {
+				position: fixed;
+				left: 47%;
+				top: 0;
+				display: none;
+			}
+		</style>
+		<script type="text/javascript">
+			var gameInterval, scoreOpacity, energizerFlash, theFrame, frame, degree, dx, dy, my, mx, energizer, goHorizontal, pacObj, score, changeCounter, intro, death, siren1, siren2, siren3, chomp, pacTimeout, monTimeout, monRate, pacRate, theContainer, forgiveness, spinInt, dotCount, energizerObj, eatMonster, sirenInterval, enerTimer, enerSound, changeBack, lives, pause, fruitScore, edible, fruitTimeout,monsterScore, extra, sirenDelay, highScore, randomizeFruit, energizerReduce, dontDie, fruitObj, spinScale;
+			const DEFAULT_HS = 10;
+			
+			onload = function() {
+				getHighScore();
+				showHighScore();
+				}
+			function reset() {	
+				fruitObj = document.getElementById('fruit');
+				document.getElementById('gameOver').style.display = "none";
+				forgiveness = 40;
+				theFrame = 0;
+				theFrame = 0;
+				extra = false;
+				frame = -1;
+				mFrame = -1;
+				degree = 0;
+				energizerReduce = 0;
+				energizer = false;
+				randomizeFruit = false;
+				pause = false;
+				edible = 0;
+				fruitScore = 100;
+				monsterScore = 200;
+				dontDie = 100;
+				document.getElementById('fruit').style.top = "-400px";
+				dx = -1;
+				dy = 0;
+				mx = -1;
+				my = -1;
+				lives = 3;
+				sirenDelay = 0;
+				dotCount = 0;
+				score = 0;
+				monRate = 2;
+				pacRate = 4;
+				goHorizontal = false;
+				changeCounter = 0;
+				populateLives();
+				pacObj = document.getElementById("pac");
+				theContainer = document.getElementById('container');
+				document.getElementById('intro').play();
+				setGameInterval();
+				if (energizerFlash) { clearInterval(energizerFlash);}
+				energizerFlash = setInterval("toggleEnergizer()", 300);
+				if (fruitTimeout) {
+					clearTimeout(fruitTimeout);
+				}
+				fruitTimeout = undefined;
+			}	
+			
+			function setGameInterval() {	
+				if (gameInterval) {
+					clearInterval(gameInterval);
+				}			
+				gameInterval = setInterval("controlGame()", 17);
+			}
+			
+			function getHighScore() {
+				//alert('get high score ' + localStorage.getItem("BadPacHS") );
+				highScore = parseInt(localStorage.getItem("BadPacHS") || DEFAULT_HS);
+			}
+			
+			function showHighScore() {				
+				document.getElementById('highScore').innerHTML = "High Score<br/>" + highScore;
+			}
+			
+			function showHighScoreUpdated() {
+				document.getElementById('updateScore').style.display = "block";
+				setTimeout(function(){document.getElementById('updateScore').style.display = "none";}, 500);
+			}
+1			
+			function setHighScore() {	
+				var oldHS = parseInt(localStorage.getItem("BadPacHS") || DEFAULT_HS);
+				
+				//alert('Set Score ' + oldHS + ' : ' + highScore);
+				
+				if (highScore > oldHS) {
+					localStorage.setItem("BadPacHS", highScore);
+					//alert('Wrote Score ' + highScore);
+				}	
+				
+			}
+			
+			function toggleEnergizer() {
+				var ener;
+				ener = document.getElementById('energizer');
+				if (ener.style.visibility === "visible") {
+					ener.style.visibility = "hidden";
+				} else {
+					ener.style.visibility = "visible";
+				}
+			}
+			
+			function showPoints(points) {
+				var pb;
+				pb = document.getElementById('pointsBox');
+				pb.style.left = pacObj.offsetLeft + "px";
+				pb.style.top = pacObj.offsetTop + "px";
+				pb.innerHTML = points;
+				pb.style.opacity = 1;
+				scoreOpacity = 1;
+			}
+							
+			function controlGame() {
+				if (pause === false) {
+					movePac();
+					if (dontDie > 0) {
+						dontDie -= 1;
+					} else {
+						moveMonster();
+						}
+					if (edible > 0) {
+						edible -=1;
+						if (edible/85 === Math.floor(edible/85)) {
+							energizerSound();
+						}
+						//document.getElementById('p1Score').innerHTML = edible;
+						if (edible === 0) {
+							resetEnergizer();
+						} else if (edible < 50) {
+							document.getElementById('monster').style.opacity = ".3";
+						}
+					} else {
+						sirenDelay++;
+						if (sirenDelay > 1) {
+							sirenDelay = 0;
+							siren(100);
+						}
+					}
+				}
+				
+				if (scoreOpacity > 0) {
+				var scoreBox = document.getElementById('pointsBox');
+					scoreOpacity -= .01;
+					scoreBox.style.top = scoreBox.offsetTop - 2 + "px";
+					scoreBox.style.opacity = Math.floor(scoreOpacity*10)/10;
+					scoreBox.style.transform = "scale(" + (1.5 - scoreOpacity) + ")";
+				}
+			}
+			
+			onkeydown = function(e) {
+				var e, dirX, dirY;
+				e = window.event || e;
+				e = e.keyCode;
+				if (e > 36 && e < 41) {
+					dx = (e === 39) - (e === 37);
+					dy = (e === 40) - (e === 38);
+				}
+				if (e === 49 && !gameInterval) {
+					reset();
+				}
+				if (e === 80) {
+					pauseGame();
+				}
+				//alert(e);
+			}
+			
+			function die() {
+			clearInterval(gameInterval);
+			document.getElementById('monster').style.top = "-400px";
+			lives -= 1;
+			spinScale = 1;
+			dontDie = 100;
+			spinInt = setInterval("spin()", 30);
+			setTimeout(function(){
+				pacObj.style.left = "45%";
+				document.getElementById('pointsBox').style.top = "-400px";
+						pacObj.style.top = "60%";
+						monObj = document.getElementById('monster');
+						monObj.style.left = "45%";
+						monObj.style.top = "10%";
+						mx=-1;
+						my=-1;
+						goHorizontal = true;
+						dx=-1;
+						dy=0;
+						clearInterval(spinInt);
+						degree = 0;
+						pacObj.style.transform = "rotate("+degree+"deg)";
+						pacObj.style.msTransform = "rotate("+degree+"deg)";
+						pacObj.style.oTransform = "rotate("+degree+"deg)";
+						pacObj.style.webkitTransform = "rotate("+degree+"deg)";
+						if (lives > 0) {
+						populateLives();
+						setGameInterval();	
+						} else {
+							gameInterval = undefined;
+							document.getElementById('gameOver').style.display = "block";
+							pause = false;
+							document.getElementById('paused').style.display = "none";							
+							document.getElementById('energizer').style.top = "-400px";
+							if (score >= highScore) {
+								setHighScore();
+							}
+							document.getElementById('theEnd').play();
+						}
+				}, 2000);
+			}
+			
+			function pauseGame() {
+				if (document.getElementById('gameOver').style.display === "block") {
+					return false;
+				}
+				if (pause === false) {
+						pause = true;
+						document.getElementById('paused').style.display = "block";
+					} else {						
+						pause = false;
+						document.getElementById('paused').style.display = "none";
+					}
+			}
+			
+			function spin() {
+				spinScale -= .01;
+				degree += 15 - (360 * (degree > 360));
+				pacObj.style.transform = "rotate("+degree+"deg) scale(" + spinScale + ")";
+				pacObj.style.msTransform = "rotate("+degree+"deg) scale(" + spinScale + ")";
+				pacObj.style.oTransform = "rotate("+degree+"deg) scale(" + spinScale + ")";
+				pacObj.style.webkitTransform = "rotate("+degree+"deg) scale(" + spinScale + ")";				
+			}
+			
+			function movePac() {
+				var frameOffset, dot;
+				pacObj = document.getElementById("pac");
+				dotObj = document.getElementById("dot");
+				energizerObj = document.getElementById("energizer");
+				pacObj.style.transform = "rotate("+degree+"deg)";
+				pacObj.style.msTransform = "rotate("+degree+"deg)";
+				pacObj.style.oTransform = "rotate("+degree+"deg)";
+				pacObj.style.webkitTransform = "rotate("+degree+"deg)";
+				
+			
+				if (theFrame++ > 1) {
+					theFrame = 0;
+					if (frame++ > 2) { frame = 0; }
+				}
+				
+				frameOffset = pacObj.offsetWidth + (frame * pacObj.offsetWidth) - ((2 * pacObj.offsetWidth) * (frame === 3));
+				pacObj.style.backgroundPosition = frameOffset + "px 0px";
+				
+				pacObj.style.left = (pacObj.offsetLeft + pacRate * dx) + "px";				
+				pacObj.style.top = (pacObj.offsetTop + pacRate * dy) + "px";
+				
+				if (pacObj.offsetLeft > theContainer.offsetWidth - pacObj.offsetWidth - 12) {
+					pacObj.style.left = theContainer.offsetWidth - pacObj.offsetWidth - 12 + "px";
+				} else if (pacObj.offsetLeft < 0) {
+					pacObj.style.left = "0px";
+				} else if (pacObj.offsetTop < 0) {
+					pacObj.style.top = "0px";
+				} else if (pacObj.offsetTop > theContainer.offsetHeight - pacObj.offsetHeight - 12) {
+					pacObj.style.top = theContainer.offsetHeight - pacObj.offsetHeight - 12 + "px";
+				} 
+				
+				degree = 180 * (dx === -1) + 90 * (dy>0) + 270 * (dy<0);
+				
+				if ((dotObj.offsetLeft + dotObj.offsetWidth) > pacObj.offsetLeft &&
+					(dotObj.offsetLeft) < (pacObj.offsetLeft + pacObj.offsetWidth) &&
+					(dotObj.offsetTop + dotObj.offsetHeight) > pacObj.offsetTop &&
+					(dotObj.offsetTop) < (pacObj.offsetTop + pacObj.offsetHeight)) {
+						dotObj.style.left = Math.random() * (theContainer.offsetWidth - 12 - dotObj.offsetWidth * 2) + "px";
+						dotObj.style.top = Math.random() * (theContainer.offsetHeight - 12 - dotObj.offsetHeight * 2) + "px";
+						score+=10;
+						dotCount++;
+						switch (dotCount) {
+							case 5:
+								pacRate++;
+								monRate++;
+								break;
+							case 20:
+								monRate++;
+								pacRate++;
+								break;
+							case 35:
+								monRate++;
+								break;
+							case 40:
+								pacRate++;
+								monRate++;
+								break;
+							case 60:
+								pacRate++;
+								monRate++;
+								break;
+							case 80:
+								pacRate++;
+								monRate++;
+								break;
+							case 85:
+								pacRate++;
+								break;
+							case 90:
+								pacRate++;
+								break;
+							case 100:
+								monRate++;
+								break;
+						}	
+						playSound("chomp");
+						if (dotCount/10 === Math.floor(dotCount/10)) {							
+							energizerObj.style.left = Math.random() * (theContainer.offsetWidth - 12 - energizerObj.offsetWidth * 2) + "px";
+							energizerObj.style.top = Math.random() * (theContainer.offsetHeight - 12 - energizerObj.offsetHeight * 2) + "px";
+						}
+						if (dotCount/15 === Math.floor(dotCount/15)) {	
+							var fruitOff;
+							if (randomizeFruit === true) {
+								var a = Math.floor(Math.random() * 7);
+								switch (a) {
+									case 0:
+									fruitScore = 100;
+									break;
+									case 1:
+									fruitScore = 200;
+									break;
+									case 2:
+									fruitScore = 400;
+									break;
+									case 3:
+									fruitScore = 800;
+									break;
+									case 4:
+									fruitScore = 1600;
+									break;
+									case 5:
+									fruitScore = 3200;
+									break;
+									default:
+									fruitScore = 5000;
+								}
+							}
+							switch (fruitScore) {
+								case 100:
+									fruitOff = 0;
+									break;
+								case 200:
+									fruitOff = 1;
+									break;
+								case 400:
+									fruitOff = 2;
+									energizerReduce = 100;
+									break;
+								case 800:
+									fruitOff = 3;
+									energizerReduce = 300;
+									break;
+								case 1600:
+									fruitOff = 4;
+									energizerReduce = 250;
+									break;
+								case 3200:
+									fruitOff = 5;
+									energizerReduce = 200;
+									break;
+								default:
+									fruitOff = 6;
+									energizerReduce = 350;
+									randomizeFruit = true;
+								}
+								fruitObj.style.backgroundPosition = -(fruitOff * 50) + "px 0px";
+							
+							fruitObj.style.left = Math.random() * (theContainer.offsetWidth - 12 - fruitObj.offsetWidth * 2) + "px";
+							fruitObj.style.top = Math.random() * (theContainer.offsetHeight - 12 - fruitObj.offsetHeight * 2) + "px";
+							if (fruitTimeout) { clearTimeout(fruitTimeout);}
+							fruitTimeout = setTimeout(function() {
+								document.getElementById('fruit').style.top = "-400px";
+							}, 6000)
+						}
+					
+					}
+				if ((energizerObj.offsetLeft + energizerObj.offsetWidth) > pacObj.offsetLeft &&
+					(energizerObj.offsetLeft) < (pacObj.offsetLeft + pacObj.offsetWidth) &&
+					(energizerObj.offsetTop + energizerObj.offsetHeight) > pacObj.offsetTop &&
+					(energizerObj.offsetTop) < (pacObj.offsetTop + pacObj.offsetHeight)) {
+						energizerObj.style.top = "-400px";
+						energizer = true;
+						energizerSound();
+						edible = (500 - energizerReduce);
+						score += 50;
+					}
+					if ((fruitObj.offsetLeft + fruitObj.offsetWidth) > pacObj.offsetLeft &&
+					(fruitObj.offsetLeft) < (pacObj.offsetLeft + pacObj.offsetWidth) &&
+					(fruitObj.offsetTop + fruitObj.offsetHeight) > pacObj.offsetTop &&
+					(fruitObj.offsetTop) < (pacObj.offsetTop + pacObj.offsetHeight)) {
+						fruitObj.style.top = "-400px";
+						score += fruitScore;
+						showPoints(fruitScore);
+						playSound("fruitSound");
+						fruitScore = fruitScore * 2;
+						if (fruitScore > 5000) {
+							fruitScore = 5000;
+						}
+				}
+				p1Score.innerHTML = "1UP<br/>" + score;
+				if (score > highScore) {
+					highScore = score;
+				}
+				showHighScore();
+				if (extra === false && score > 10000) {
+					extra = true;
+					lives += 1;
+					populateLives();
+					document.getElementById('intro').play();
+					showPoints("1UP");
+				}
+			}
+			function moveMonster() {
+				var frameOffset, monObj, framOffsetY, decide, theRandom;
+				decide = false;
+				monObj = document.getElementById('monster');
+				if (mFrame++  > 10) {mFrame = 0;}
+				frameOffset = monObj.offsetWidth * (mFrame > 5);
+				frameOffsetY = monObj.offsetHeight * (-1 * (mx === -1) * (goHorizontal === true)) + (-2 * monObj.offsetHeight * (my === -1) * (goHorizontal === false)) + (-3 * monObj.offsetHeight * (my === 1) * (goHorizontal === false));
+				if (energizer === true) {
+					frameOffsetY = (-4 * monObj.offsetHeight);
+				}
+				monObj.style.backgroundPosition = frameOffset + "px " + frameOffsetY + "px";
+				monObj.style.left = (monObj.offsetLeft + monRate / (2 - (energizer === false)) * (mx * (goHorizontal === true))) + "px";
+				monObj.style.top = (monObj.offsetTop + monRate / (2 - (energizer === false)) * (my * (goHorizontal === false))) + "px";
+				
+				if (changeCounter > 0) {
+					changeCounter -=1;
+				}
+				
+				if (monObj.offsetLeft < 0) {
+					monObj.style.left = "0px";
+					mx = 1;
+					decide = true;
+				} else if (monObj.offsetLeft > (theContainer.offsetWidth - 12 - monObj.offsetWidth)) {
+					monObj.style.left = theContainer.offsetWidth - 12 - monObj.offsetWidth + "px";
+					mx =-1;
+					decide = true;
+				} else if (monObj.offsetTop < 0) {
+					monObj.style.top = "0px";
+					my = 1;
+					decide = true;
+				} else if (monObj.offsetTop > theContainer.offsetHeight - 12 - monObj.offsetHeight) {
+					monObj.style.top = theContainer.offsetHeight - 12 - monObj.offsetHeight + "px";
+					my = -1;
+					decide = true;
+				}
+				
+				if (theRandom > 750 && goHorizontal === true && changeCounter === 0  && energizer === false) {
+					if (pacObj.offsetLeft > monObj.offsetLeft) {
+						mx = 1;
+					} else {
+						mx = -1;
+					}
+				} else if (theRandom > 750 && changeCounter === 0 && energizer === false) {
+					if (pacObj.offsetTop > monObj.offsetTop) {
+						my = 1;
+					} else {
+						my = -1;
+					}
+				} else {
+					changeCounter = 0;
+				}
+				
+				theRandom = Math.random() * 1500;
+				
+				if (theRandom > 500 && theRandom < 1000 && changeCounter === 0) {
+					if (goHorizontal === true && Math.abs(pacObj.offsetTop - monObj.offsetTop) > Math.abs(pacObj.offsetLeft - monObj.offsetLeft)) {
+						goHorizontal = false;
+						changeCounter = Math.floor(Math.random() * 30);
+					} else if (goHorizontal === false && Math.abs(pacObj.offsetTop - monObj.offsetTop) < Math.abs(pacObj.offsetLeft - monObj.offsetLeft)){
+						goHorizontal = true;
+						changeCounter = Math.floor(Math.random() * 30);
+					}
+				}
+				
+				if (decide === true) {
+					if (goHorizontal === true && Math.abs(pacObj.offsetLeft - monObj.offsetLeft) < 100 ) {
+						goHorizontal = false;
+					} else if (goHorizontal === false && Math.abs(pacObj.offsetTop - monObj.offsetTop) < 100  ) {
+						goHorizontal = true;
+					}
+				}
+				
+				
+				if (pacObj.offsetLeft < (monObj.offsetLeft + monObj.offsetWidth - forgiveness) &&
+					(pacObj.offsetLeft + pacObj.offsetWidth) > monObj.offsetLeft + forgiveness &&
+					pacObj.offsetTop < (monObj.offsetTop + monObj.offsetHeight - forgiveness) &&
+					(pacObj.offsetTop + pacObj.offsetHeight) > monObj.offsetTop + forgiveness)	{
+						if (energizer === false) {
+							pacObj.style.backgroundPosition = (pacObj.offsetWidth * 2)+"px 0px";
+							playSound("death");
+							clearTimeout(changeBack);
+							monObj.opacity = 1;
+							die();
+						} else {
+							monObj.style.left = "45%";
+							monObj.style.top = "10%";	
+							monObj.style.opacity = 1;
+							clearTimeout(changeBack);
+							energizer = false;
+							playSound("eatMonster");
+							document.getElementById("monster").style.backgroundPosition = "0px -320px";
+							dontDie = 100;
+							edible = 0;						
+							score += monsterScore;
+							showPoints(monsterScore);
+							monsterScore = monsterScore * 2;
+							if (monsterScore > 3200) {
+								monsterScore = 3200;
+							}
+						}						
+					}
+			}
+			
+			function resetEnergizer() {
+				energizer = false;
+				document.getElementById('monster').style.opacity = "1";
+				document.getElementById('monster').style.opacity = "1";
+			}
+			function playSound(theSound) {
+				try {
+				var hit, a;
+				hit = document.getElementById(theSound);
+				// a = hit.cloneNode(hit);
+				// document.body.appendChild(a);
+				hit.play();
+				// setTimeout(function(){
+					// document.body.removeChild(a)}, 2000);
+				} catch(e) {
+					alert(e);
+				}
+			}
+			function siren(time) {	
+			if (pause === true) { return; }
+				try {
+				var hit, a;
+				hit = document.getElementById("siren1");
+				// a = hit.cloneNode(hit);
+				// document.body.appendChild(a);
+				hit.play();
+				// setTimeout(function(){
+					// document.body.removeChild(a)}, time);
+				} catch(e) {
+					alert(e);
+				}			
+			}
+			function energizerSound() {	
+			if (paused === true) { return; }
+				try {
+				var hit, a;
+				hit = document.getElementById("energizerSound");
+				// a = hit.cloneNode(hit);
+				// document.body.appendChild(a);
+				hit.play();
+				// setTimeout(function(){
+					// document.body.removeChild(a)}, 1350);
+				} catch(e) {
+					alert(e);
+				}			
+			}	
+			function populateLives() {
+				var s;
+				s = document.getElementById('p1Lives');
+				s.innerHTML = "";
+				for (i =0; i < lives -1; i++) {
+					s.innerHTML += "<img src='remainingPac.png' alt='O' />";
+				}
+			}
+		</script>
+	</head>
+	<body>	 
+		<audio id="intro" >
+			<source type="audio/mpeg" src="sounds/intro.mp3"><source>
+		</audio>
+		<audio id="chomp">
+			<source type="audio/mpeg" src="sounds/Wacka.mp3"><source>
+		</audio>
+		<audio id="death">
+			<source type="audio/mpeg" src="sounds/die.mp3"><source>
+		</audio>
+		<audio id="eatMonster">
+			<source type="audio/mpeg" src="sounds/eatMonster.mp3"><source>
+		</audio>
+		<audio id="siren1">
+			<source type="audio/mpeg" src="sounds/siren1.mp3"><source>
+		</audio>
+		<audio id="energizerSound">
+			<source type="audio/mpeg" src="sounds/energizer.mp3"><source>
+		</audio>
+		<audio id="fruitSound">
+			<source type="audio/mpeg" src="sounds/fruit.mp3"><source>
+		</audio>
+		<audio id="theEnd">
+			<source type="audio/mpeg" src="sounds/SuperPacEnd.mp3"><source>
+		</audio>
+	<div id="scoreContainer">
+	<div id="p1Score">1UP<br />00</div>
+	<div id="highScore">High Score<br />00</div>
+	<div id="updateScore">High Score Updated!</div>
+	</div>
+	<div id="container">
+		<div id="pac">
+			&nbsp;
+		</div>
+		<div id="monster">
+			&nbsp;
+		</div>
+		<div id="dot">
+			&nbsp;
+		</div>
+		<div id="energizer">
+			&nbsp;
+		</div>
+		<div id="fruit">
+			&nbsp;
+		</div>
+		<div id="gameOver">
+			<h1>Game Over</h1>
+			<h2>Press &quot;1&quot; to Start</h2>
+		</div>
+		<div id="paused">
+			<h1>Paused</h1>
+		</div>
+		<div id="pointsBox">
+			100
+		</div>
+	</div>
+	<div id="bottomContain">
+	<div style="float:right;">By:Darryl Guenther</div>
+		<div id="p1Lives">&nbsp;</div>
+	</div>
+	<input type="hidden" value="" id="theHigh" readonly />
+	</body>
+</html>
